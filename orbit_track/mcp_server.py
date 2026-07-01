@@ -19,16 +19,32 @@ def fetch_tle(satellite_name: str) -> dict:
         A dictionary containing satellite_name, tle_line1, and tle_line2.
     """
     query_name = satellite_name.strip()
-    url = "https://celestrak.org/NORAD/elements/gp.php"
     params = {
         "NAME": query_name,
         "FORMAT": "TLE"
     }
     
+    url_org = "https://celestrak.org/NORAD/elements/gp.php"
+    url_com = "https://celestrak.com/NORAD/elements/gp.php"
+    
+    response = None
+    last_err = None
+    
+    # Try celestrak.org first
     try:
-        response = requests.get(url, params=params, timeout=10)
+        response = requests.get(url_org, params=params, timeout=10)
     except Exception as e:
-        raise RuntimeError(f"Error connecting to CelesTrak: {str(e)}")
+        last_err = e
+        
+    # Fallback to celestrak.com if .org fails or times out
+    if response is None or response.status_code != 200:
+        try:
+            response = requests.get(url_com, params=params, timeout=10)
+        except Exception as e:
+            last_err = e
+            
+    if response is None:
+        raise RuntimeError(f"Error connecting to CelesTrak (.org and .com): {str(last_err)}")
         
     if response.status_code != 200:
         raise ValueError(f"Failed to fetch TLE from CelesTrak. HTTP Status: {response.status_code}")
