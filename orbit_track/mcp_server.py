@@ -18,12 +18,15 @@ def fetch_tle(satellite_name: str) -> dict:
     Returns:
         A dictionary containing satellite_name, tle_line1, and tle_line2.
     """
-    # Clean up name for CelesTrak URL formatting
     query_name = satellite_name.strip()
-    url = f"https://celestrak.org/NORAD/elements/gp.php?NAME={query_name}&FORMAT=TLE"
+    url = "https://celestrak.org/NORAD/elements/gp.php"
+    params = {
+        "NAME": query_name,
+        "FORMAT": "TLE"
+    }
     
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, params=params, timeout=10)
     except Exception as e:
         raise RuntimeError(f"Error connecting to CelesTrak: {str(e)}")
         
