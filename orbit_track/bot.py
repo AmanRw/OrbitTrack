@@ -1,5 +1,7 @@
 import os
 import discord
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from discord import app_commands
 from dotenv import load_dotenv
 from orbit_track.cli import run_prediction_pipeline
@@ -7,6 +9,23 @@ from orbit_track.cli import run_prediction_pipeline
 # Load env variables
 load_dotenv()
 BOT_TOKEN = os.environ.get("DISCORD_BOT_TOKEN")
+
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+        self.wfile.write(b"OK")
+
+    def log_message(self, format, *args):
+        # Prevent spamming console logs with health checks
+        return
+
+def run_health_server():
+    port = int(os.environ.get("PORT", 8080))
+    server = HTTPServer(("0.0.0.0", port), HealthCheckHandler)
+    print(f"Health check server running on port {port}...", flush=True)
+    server.serve_forever()
 
 class OrbitBot(discord.Client):
     def __init__(self):
@@ -66,6 +85,13 @@ def start_bot():
     if not BOT_TOKEN:
         print("Error: DISCORD_BOT_TOKEN is missing in the environment. Please add it to your .env file.", flush=True)
         return
+        
+    # Start background health server for Render Free Tier Web Services
+    port_env = os.environ.get("PORT")
+    if port_env:
+        print(f"PaaS environment detected. Launching health check listener...", flush=True)
+        threading.Thread(target=run_health_server, daemon=True).start()
+        
     print("Starting OrbitBot...", flush=True)
     bot.run(BOT_TOKEN)
 
