@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orbit-track"
+version = "0.1.0"
+description = "A multi-agent satellite orbit tracker using LangGraph and MCP"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "langgraph>=0.1.0",
+    "langchain-core",
+    "langchain-google-genai",
+    "mcp>=1.0.0",
+    "skyfield>=1.48",
+    "requests",
+    "python-dotenv",
+    "pytz",
+    "discord.py>=2.0.0"
+]
+
+[project.scripts]
+orbit-track = "orbit_track.cli:main"
