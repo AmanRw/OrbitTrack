@@ -49,6 +49,11 @@ async def call_mcp_tool(config: RunnableConfig, tool_name: str, arguments: dict)
         raise ValueError(f"MCP tool '{tool_name}' returned no content.")
         
     text = result.content[0].text
+    
+    # If the MCP server returned an error, raise it so the agent can catch and report it properly
+    if getattr(result, "isError", False):
+        raise ValueError(text)
+        
     try:
         return json.loads(text)
     except json.JSONDecodeError:
