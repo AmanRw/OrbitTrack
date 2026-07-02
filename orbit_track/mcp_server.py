@@ -43,8 +43,36 @@ def fetch_tle(satellite_name: str) -> dict:
         except Exception as e:
             last_err = e
             
+    # Second Fallback: Ivanstanojevic TLE API (cached CelesTrak mirror) if both CelesTrak domains are blocked/down
+    if response is None or response.status_code != 200:
+        url_mirror = "https://tle.ivanstanojevic.me/api/tle"
+        headers = {
+            "User-Agent": "OrbitTrackAgent/1.0 (contact: developer@orbittrack.local)"
+        }
+        
+        search_queries = [query_name]
+        if "HUBBLE" in query_name.upper():
+            search_queries.append("HST")
+        if " (" in query_name:
+            search_queries.append(query_name.split(" (")[0])
+            
+        for q in search_queries:
+            try:
+                mirror_res = requests.get(url_mirror, params={"search": q}, headers=headers, timeout=10)
+                if mirror_res.status_code == 200:
+                    data = mirror_res.json()
+                    if "member" in data and len(data["member"]) > 0:
+                        member = data["member"][0]
+                        return {
+                            "satellite_name": member.get("name"),
+                            "tle_line1": member.get("line1"),
+                            "tle_line2": member.get("line2")
+                        }
+            except Exception as e:
+                last_err = e
+                
     if response is None:
-        raise RuntimeError(f"Error connecting to CelesTrak (.org and .com): {str(last_err)}")
+        raise RuntimeError(f"Error connecting to CelesTrak (.org and .com) and TLE API mirror: {str(last_err)}")
         
     if response.status_code != 200:
         raise ValueError(f"Failed to fetch TLE from CelesTrak. HTTP Status: {response.status_code}")
