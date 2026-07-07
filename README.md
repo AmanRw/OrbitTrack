@@ -28,7 +28,7 @@ OrbitTrack is a multi-agent orbital tracking pipeline built using **LangGraph**,
 ### 📡 Tracker Node
 Responsible for capturing telemetry, normalizing satellite nomenclature, and retrieving active Two-Line Elements (TLEs):
 <p align="center">
-  <img src="images/tracker_node.png" alt="Tracker Node Graphic" width="300"/>
+  <img src="images/tracker_node.png" alt="Tracker Node Graphic" width="150"/>
 </p>
 
 ### 📢 Broadcaster Avatar
